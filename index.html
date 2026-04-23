@@ -149,22 +149,37 @@ tr:hover td{background:#f9fcfc;}
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4G6fpkSRdRF9tr9Fe9OSimyIoq0AW8hbFGwLvUfu_Snl9A--IgAE-DMYhc760ldXcDg/exec";
-let municipios = [], solicitudes = [];
+let municipios = [], solicitudes = [], _cbCount = 0;
 
 window.onload = () => { cargarMunicipios(); cargarSolicitudes(); };
 
-function cambiarTab(tab) {
-  const ids = ["solicitudes","nueva","municipios"];
-  document.querySelectorAll(".tab").forEach((t,i) => t.classList.toggle("active", ids[i]===tab));
-  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
-  document.getElementById("panel-"+tab).classList.add("active");
+// JSONP para GET (evita CORS)
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = '_cb' + (++_cbCount);
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => { delete window[cbName]; script.remove(); reject(new Error('Timeout')); }, 15000);
+    window[cbName] = (data) => { clearTimeout(timeout); delete window[cbName]; script.remove(); resolve(data); };
+    const qs = new URLSearchParams({...params, callback: cbName}).toString();
+    script.src = SCRIPT_URL + '?' + qs;
+    script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Script error')); };
+    document.head.appendChild(script);
+  });
 }
 
-async function api(data) {
+// POST via fetch para escritura
+async function apiPost(data) {
   try {
     const r = await fetch(SCRIPT_URL, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)});
     return await r.json();
   } catch(e) { return {ok:false, msg:"Error: "+e.message}; }
+}
+
+// GET via JSONP para lectura
+async function apiGet(params) {
+  try {
+    return await jsonp(params);
+  } catch(e) { return {ok:false, msg:"Error JSONP: "+e.message}; }
 }
 
 function toast(msg, tipo="ok") {
@@ -176,9 +191,16 @@ function toast(msg, tipo="ok") {
 
 function cerrarModal(id) { document.getElementById(id).classList.remove("show"); }
 
+function cambiarTab(tab) {
+  const ids = ["solicitudes","nueva","municipios"];
+  document.querySelectorAll(".tab").forEach((t,i) => t.classList.toggle("active", ids[i]===tab));
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.getElementById("panel-"+tab).classList.add("active");
+}
+
 async function cargarSolicitudes() {
   document.getElementById("tabla-solicitudes").innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>Cargando...</p></div>';
-  const res = await api({accion:"get_solicitudes"});
+  const res = await apiGet({accion:"get_solicitudes"});
   solicitudes = res.solicitudes || [];
   renderSolicitudes();
 }
@@ -195,7 +217,7 @@ function renderSolicitudes() {
 async function generarBorrador(fila, btn) {
   btn.innerHTML = '<span class="spinner" style="border-top-color:var(--verde);border-color:var(--borde);"></span>';
   btn.disabled = true;
-  const res = await api({accion:"generar_borrador", fila});
+  const res = await apiPost({accion:"generar_borrador", fila});
   btn.innerHTML = "📧"; btn.disabled = false;
   if (res.ok) { toast("Borrador creado en Gmail ✓"); cargarSolicitudes(); }
   else toast(res.msg||"Error.","error");
@@ -204,7 +226,7 @@ async function generarBorrador(fila, btn) {
 async function eliminarSolicitud(fila, btn) {
   if (!confirm("¿Eliminar esta solicitud?")) return;
   btn.disabled = true;
-  const res = await api({accion:"eliminar_solicitud", fila});
+  const res = await apiPost({accion:"eliminar_solicitud", fila});
   if (res.ok) { toast("Eliminada."); cargarSolicitudes(); }
   else toast(res.msg||"Error.","error");
 }
@@ -228,7 +250,7 @@ function abrirEdicion(s) {
 }
 
 async function guardarEdicion() {
-  const res = await api({accion:"editar_solicitud", fila:document.getElementById("edit-fila").value, nombre:document.getElementById("edit-nombre").value, email:document.getElementById("edit-email").value, tipoDoc:document.getElementById("edit-tipodoc").value, numDoc:document.getElementById("edit-numdoc").value, telefono:document.getElementById("edit-telefono").value, intermediario:document.getElementById("edit-intermediario").value, direccion:document.getElementById("edit-direccion").value, cp:document.getElementById("edit-cp").value, municipio:document.getElementById("edit-municipio").value, refCatastral:document.getElementById("edit-refcat").value, municipioExp:document.getElementById("edit-municipioexp").value, observaciones:document.getElementById("edit-observaciones").value});
+  const res = await apiPost({accion:"editar_solicitud", fila:document.getElementById("edit-fila").value, nombre:document.getElementById("edit-nombre").value, email:document.getElementById("edit-email").value, tipoDoc:document.getElementById("edit-tipodoc").value, numDoc:document.getElementById("edit-numdoc").value, telefono:document.getElementById("edit-telefono").value, intermediario:document.getElementById("edit-intermediario").value, direccion:document.getElementById("edit-direccion").value, cp:document.getElementById("edit-cp").value, municipio:document.getElementById("edit-municipio").value, refCatastral:document.getElementById("edit-refcat").value, municipioExp:document.getElementById("edit-municipioexp").value, observaciones:document.getElementById("edit-observaciones").value});
   if (res.ok) { toast("Actualizada ✓"); cerrarModal("modal-solicitud"); cargarSolicitudes(); }
   else toast(res.msg||"Error.","error");
 }
@@ -240,7 +262,7 @@ async function guardarNuevaSolicitud() {
   if (!nombre||!numDoc||!direccion) { toast("Rellena nombre, nº documento y dirección.","error"); return; }
   const btn = document.querySelector("#panel-nueva .btn-primary");
   btn.innerHTML = '<span class="spinner"></span> Guardando...'; btn.disabled = true;
-  const res = await api({accion:"nueva_solicitud", nombre, tipoDoc:document.getElementById("ns-tipodoc").value, numDoc, telefono:document.getElementById("ns-telefono").value.trim(), email:document.getElementById("ns-email").value.trim(), direccion, municipio:document.getElementById("ns-municipio").value.trim(), cp:document.getElementById("ns-cp").value.trim(), refCatastral:document.getElementById("ns-refcat").value.trim(), intermediario:document.getElementById("ns-intermediario").value.trim(), municipioExp:document.getElementById("ns-municipioexp").value, observaciones:document.getElementById("ns-observaciones").value.trim()});
+  const res = await apiPost({accion:"nueva_solicitud", nombre, tipoDoc:document.getElementById("ns-tipodoc").value, numDoc, telefono:document.getElementById("ns-telefono").value.trim(), email:document.getElementById("ns-email").value.trim(), direccion, municipio:document.getElementById("ns-municipio").value.trim(), cp:document.getElementById("ns-cp").value.trim(), refCatastral:document.getElementById("ns-refcat").value.trim(), intermediario:document.getElementById("ns-intermediario").value.trim(), municipioExp:document.getElementById("ns-municipioexp").value, observaciones:document.getElementById("ns-observaciones").value.trim()});
   btn.innerHTML = "💾 Guardar"; btn.disabled = false;
   if (res.ok) { toast(res.msg); limpiarFormulario(); cambiarTab("solicitudes"); cargarSolicitudes(); }
   else toast(res.msg||"Error.","error");
@@ -253,7 +275,7 @@ function limpiarFormulario() {
 }
 
 async function cargarMunicipios() {
-  const res = await api({accion:"get_municipios"});
+  const res = await apiGet({accion:"get_municipios"});
   municipios = res.municipios || [];
   renderMunicipios();
   llenarSelectMunicipios();
@@ -289,14 +311,14 @@ async function guardarMunicipio() {
   const docs = document.getElementById("mun-docs").value.trim();
   const notas = document.getElementById("mun-notas").value.trim();
   if (!nombre) { toast("El nombre es obligatorio.","error"); return; }
-  const res = await api({accion:"guardar_municipio", nombre, docs, notas});
+  const res = await apiPost({accion:"guardar_municipio", nombre, docs, notas});
   if (res.ok) { toast(res.msg); cerrarModal("modal-municipio"); cargarMunicipios(); }
   else toast(res.msg||"Error.","error");
 }
 
 async function eliminarMunicipio(nombre) {
   if (!confirm('¿Eliminar "'+nombre+'"?')) return;
-  const res = await api({accion:"eliminar_municipio", nombre});
+  const res = await apiPost({accion:"eliminar_municipio", nombre});
   if (res.ok) { toast(res.msg); cargarMunicipios(); }
   else toast(res.msg||"Error.","error");
 }
