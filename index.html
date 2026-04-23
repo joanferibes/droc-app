@@ -159,7 +159,7 @@ async function leerSheet(hoja) {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(hoja)}&tqx=out:json`;
   const r = await fetch(url);
   const txt = await r.text();
-  const json = JSON.parse(txt.replace(/^.*?\(/, '').replace(/\);?\s*$/, ''));
+  const json = JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
   return json.table;
 }
 
