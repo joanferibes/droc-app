@@ -148,38 +148,27 @@ tr:hover td{background:#f9fcfc;}
 <div class="toast" id="toast"></div>
 
 <script>
+const SHEET_ID = "10zmBfLB03y_zxK35y2tO83s3qixGIBSM9cmxyORYtpU";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4G6fpkSRdRF9tr9Fe9OSimyIoq0AW8hbFGwLvUfu_Snl9A--IgAE-DMYhc760ldXcDg/exec";
-let municipios = [], solicitudes = [], _cbCount = 0;
+let municipios = [], solicitudes = [];
 
 window.onload = () => { cargarMunicipios(); cargarSolicitudes(); };
 
-// JSONP para GET (evita CORS)
-function jsonp(params) {
-  return new Promise((resolve, reject) => {
-    const cbName = '_cb' + (++_cbCount);
-    const script = document.createElement('script');
-    const timeout = setTimeout(() => { delete window[cbName]; script.remove(); reject(new Error('Timeout')); }, 15000);
-    window[cbName] = (data) => { clearTimeout(timeout); delete window[cbName]; script.remove(); resolve(data); };
-    const qs = new URLSearchParams({...params, callback: cbName}).toString();
-    script.src = SCRIPT_URL + '?' + qs;
-    script.onerror = () => { clearTimeout(timeout); delete window[cbName]; script.remove(); reject(new Error('Script error')); };
-    document.head.appendChild(script);
-  });
+// Lee datos del Sheet público (sin CORS)
+async function leerSheet(hoja) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(hoja)}&tqx=out:json`;
+  const r = await fetch(url);
+  const txt = await r.text();
+  const json = JSON.parse(txt.replace(/^.*?\(/, '').replace(/\);?\s*$/, ''));
+  return json.table;
 }
 
-// POST via fetch para escritura
+// Escribe datos via Apps Script POST
 async function apiPost(data) {
   try {
     const r = await fetch(SCRIPT_URL, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)});
     return await r.json();
   } catch(e) { return {ok:false, msg:"Error: "+e.message}; }
-}
-
-// GET via JSONP para lectura
-async function apiGet(params) {
-  try {
-    return await jsonp(params);
-  } catch(e) { return {ok:false, msg:"Error JSONP: "+e.message}; }
 }
 
 function toast(msg, tipo="ok") {
@@ -198,11 +187,42 @@ function cambiarTab(tab) {
   document.getElementById("panel-"+tab).classList.add("active");
 }
 
+// ===== SOLICITUDES =====
 async function cargarSolicitudes() {
   document.getElementById("tabla-solicitudes").innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>Cargando...</p></div>';
-  const res = await apiGet({accion:"get_solicitudes"});
-  solicitudes = res.solicitudes || [];
-  renderSolicitudes();
+  try {
+    const table = await leerSheet("Solicitudes DROC");
+    solicitudes = [];
+    if (table && table.rows) {
+      table.rows.forEach((row, i) => {
+        const c = row.c;
+        if (!c || !c[0] || !c[0].v) return;
+        const fecha = c[0].v ? c[0].v.replace(/^Date\(/, '').replace(/\)$/, '').split(',') : [];
+        const fechaStr = fecha.length >= 3 ? `${String(parseInt(fecha[2])).padStart(2,'0')}/${String(parseInt(fecha[1])+1).padStart(2,'0')}/${fecha[0]}` : '';
+        solicitudes.push({
+          fila:          i + 2,
+          fechaRecepcion: fechaStr,
+          nombre:        c[1]?.v || '',
+          tipoDoc:       c[2]?.v || 'DNI',
+          numDoc:        c[3]?.v || '',
+          telefono:      c[4]?.v || '',
+          email:         c[5]?.v || '',
+          direccion:     c[6]?.v || '',
+          municipio:     c[7]?.v || '',
+          cp:            c[8]?.v || '',
+          refCatastral:  c[9]?.v || '',
+          intermediario: c[10]?.v || '',
+          municipioExp:  c[11]?.v || '',
+          estado:        c[12]?.v || 'Nuevo',
+          observaciones: c[14]?.v || '',
+        });
+      });
+      solicitudes.reverse();
+    }
+    renderSolicitudes();
+  } catch(e) {
+    document.getElementById("tabla-solicitudes").innerHTML = '<div class="empty"><div class="empty-icon">❌</div><p>Error al cargar: '+e.message+'</p></div>';
+  }
 }
 
 function renderSolicitudes() {
@@ -219,7 +239,7 @@ async function generarBorrador(fila, btn) {
   btn.disabled = true;
   const res = await apiPost({accion:"generar_borrador", fila});
   btn.innerHTML = "📧"; btn.disabled = false;
-  if (res.ok) { toast("Borrador creado en Gmail ✓"); cargarSolicitudes(); }
+  if (res.ok) { toast("Borrador creado en Gmail ✓"); setTimeout(cargarSolicitudes, 1500); }
   else toast(res.msg||"Error.","error");
 }
 
@@ -227,7 +247,7 @@ async function eliminarSolicitud(fila, btn) {
   if (!confirm("¿Eliminar esta solicitud?")) return;
   btn.disabled = true;
   const res = await apiPost({accion:"eliminar_solicitud", fila});
-  if (res.ok) { toast("Eliminada."); cargarSolicitudes(); }
+  if (res.ok) { toast("Eliminada."); setTimeout(cargarSolicitudes, 1500); }
   else toast(res.msg||"Error.","error");
 }
 
@@ -251,7 +271,7 @@ function abrirEdicion(s) {
 
 async function guardarEdicion() {
   const res = await apiPost({accion:"editar_solicitud", fila:document.getElementById("edit-fila").value, nombre:document.getElementById("edit-nombre").value, email:document.getElementById("edit-email").value, tipoDoc:document.getElementById("edit-tipodoc").value, numDoc:document.getElementById("edit-numdoc").value, telefono:document.getElementById("edit-telefono").value, intermediario:document.getElementById("edit-intermediario").value, direccion:document.getElementById("edit-direccion").value, cp:document.getElementById("edit-cp").value, municipio:document.getElementById("edit-municipio").value, refCatastral:document.getElementById("edit-refcat").value, municipioExp:document.getElementById("edit-municipioexp").value, observaciones:document.getElementById("edit-observaciones").value});
-  if (res.ok) { toast("Actualizada ✓"); cerrarModal("modal-solicitud"); cargarSolicitudes(); }
+  if (res.ok) { toast("Actualizada ✓"); cerrarModal("modal-solicitud"); setTimeout(cargarSolicitudes, 1500); }
   else toast(res.msg||"Error.","error");
 }
 
@@ -264,7 +284,7 @@ async function guardarNuevaSolicitud() {
   btn.innerHTML = '<span class="spinner"></span> Guardando...'; btn.disabled = true;
   const res = await apiPost({accion:"nueva_solicitud", nombre, tipoDoc:document.getElementById("ns-tipodoc").value, numDoc, telefono:document.getElementById("ns-telefono").value.trim(), email:document.getElementById("ns-email").value.trim(), direccion, municipio:document.getElementById("ns-municipio").value.trim(), cp:document.getElementById("ns-cp").value.trim(), refCatastral:document.getElementById("ns-refcat").value.trim(), intermediario:document.getElementById("ns-intermediario").value.trim(), municipioExp:document.getElementById("ns-municipioexp").value, observaciones:document.getElementById("ns-observaciones").value.trim()});
   btn.innerHTML = "💾 Guardar"; btn.disabled = false;
-  if (res.ok) { toast(res.msg); limpiarFormulario(); cambiarTab("solicitudes"); cargarSolicitudes(); }
+  if (res.ok) { toast(res.msg); limpiarFormulario(); cambiarTab("solicitudes"); setTimeout(cargarSolicitudes, 1500); }
   else toast(res.msg||"Error.","error");
 }
 
@@ -274,11 +294,21 @@ function limpiarFormulario() {
   document.getElementById("ns-municipioexp").value = "";
 }
 
+// ===== MUNICIPIOS =====
 async function cargarMunicipios() {
-  const res = await apiGet({accion:"get_municipios"});
-  municipios = res.municipios || [];
-  renderMunicipios();
-  llenarSelectMunicipios();
+  try {
+    const table = await leerSheet("Municipios DROC");
+    municipios = [];
+    if (table && table.rows) {
+      table.rows.forEach((row, i) => {
+        const c = row.c;
+        if (!c || !c[0] || !c[0].v) return;
+        municipios.push({ nombre: c[0].v, docs: c[1]?.v||'', notas: c[2]?.v||'', fila: i+2 });
+      });
+    }
+    renderMunicipios();
+    llenarSelectMunicipios();
+  } catch(e) { console.error('Error municipios:', e); }
 }
 
 function renderMunicipios() {
@@ -312,14 +342,14 @@ async function guardarMunicipio() {
   const notas = document.getElementById("mun-notas").value.trim();
   if (!nombre) { toast("El nombre es obligatorio.","error"); return; }
   const res = await apiPost({accion:"guardar_municipio", nombre, docs, notas});
-  if (res.ok) { toast(res.msg); cerrarModal("modal-municipio"); cargarMunicipios(); }
+  if (res.ok) { toast(res.msg); cerrarModal("modal-municipio"); setTimeout(cargarMunicipios, 1500); }
   else toast(res.msg||"Error.","error");
 }
 
 async function eliminarMunicipio(nombre) {
   if (!confirm('¿Eliminar "'+nombre+'"?')) return;
   const res = await apiPost({accion:"eliminar_municipio", nombre});
-  if (res.ok) { toast(res.msg); cargarMunicipios(); }
+  if (res.ok) { toast(res.msg); setTimeout(cargarMunicipios, 1500); }
   else toast(res.msg||"Error.","error");
 }
 </script>
