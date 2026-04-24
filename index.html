@@ -142,22 +142,22 @@ tr:hover td{background:#f9fcfc;}
 <div class="toast" id="toast"></div>
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4G6fpkSRdRF9tr9Fe9OSimyIoq0AW8hbFGwLvUfu_Snl9A--IgAE-DMYhc760ldXcDg/exec";
-const SHEET_ID   = "10zmBfLB03y_zxK35y2tO83s3qixGIBSM9cmxyORYtpU";
-let municipios=[], solicitudes=[], _cbN=0;
+const SHEET_ID = "10zmBfLB03y_zxK35y2tO83s3qixGIBSM9cmxyORYtpU";
+let municipios=[], solicitudes=[];
 
 window.onload = () => { cargarMunicipios(); cargarSolicitudes(); };
 
-// JSONP — funciona sin CORS desde cualquier dominio
-function api(params) {
-  return new Promise((resolve) => {
-    const cb = '_cb'+(++_cbN);
-    const s = document.createElement('script');
-    const timer = setTimeout(() => { delete window[cb]; s.remove(); resolve({ok:false,msg:'Timeout'}); }, 15000);
-    window[cb] = (data) => { clearTimeout(timer); delete window[cb]; s.remove(); resolve(data); };
-    s.onerror = () => { clearTimeout(timer); delete window[cb]; s.remove(); resolve({ok:false,msg:'Error de conexión'}); };
-    s.src = SCRIPT_URL + '?' + new URLSearchParams({...params, callback:cb}).toString();
-    document.head.appendChild(s);
-  });
+// LEER del Sheet público (sin CORS)
+async function leerSheet(hoja) {
+  const url = "https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?sheet="+encodeURIComponent(hoja)+"&tqx=out:json";
+  const r = await fetch(url);
+  const txt = await r.text();
+  return JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}') + 1)).table;
+}
+
+// ESCRIBIR al Apps Script (POST no-cors text/plain - VERIFICADO que funciona)
+function apiPost(data) {
+  return fetch(SCRIPT_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain"}, body:JSON.stringify(data)});
 }
 
 function toast(msg,tipo="ok"){const el=document.getElementById("toast");el.textContent=msg;el.className="toast show"+(tipo==="error"?" error":"");setTimeout(()=>el.classList.remove("show"),3500);}
@@ -166,9 +166,23 @@ function cambiarTab(tab){const ids=["solicitudes","nueva","municipios"];document
 
 async function cargarSolicitudes() {
   document.getElementById("tabla-solicitudes").innerHTML='<div class="empty"><div class="empty-icon">⏳</div><p>Cargando...</p></div>';
-  const res = await api({accion:"get_solicitudes"});
-  solicitudes = res.solicitudes||[];
-  renderSolicitudes();
+  try {
+    const table = await leerSheet("Solicitudes DROC");
+    solicitudes = [];
+    if (table && table.rows) {
+      table.rows.forEach((row, i) => {
+        const c = row.c;
+        if (!c || !c[0] || !c[0].v) return;
+        const fecha = c[0].v ? String(c[0].v).replace(/^Date\(/, '').replace(/\)$/, '').split(',') : [];
+        const fechaStr = fecha.length >= 3 ? String(parseInt(fecha[2])).padStart(2,'0')+'/'+String(parseInt(fecha[1])+1).padStart(2,'0')+'/'+fecha[0] : '';
+        solicitudes.push({fila:i+2, fechaRecepcion:fechaStr, nombre:c[1]?.v||'', tipoDoc:c[2]?.v||'DNI', numDoc:c[3]?.v||'', telefono:c[4]?.v||'', email:c[5]?.v||'', direccion:c[6]?.v||'', municipio:c[7]?.v||'', cp:c[8]?.v||'', refCatastral:c[9]?.v||'', intermediario:c[10]?.v||'', municipioExp:c[11]?.v||'', estado:c[12]?.v||'Nuevo', observaciones:c[14]?.v||''});
+      });
+      solicitudes.reverse();
+    }
+    renderSolicitudes();
+  } catch(e) {
+    document.getElementById("tabla-solicitudes").innerHTML='<div class="empty"><div class="empty-icon">❌</div><p>Error: '+e.message+'</p></div>';
+  }
 }
 
 function renderSolicitudes(){
@@ -181,19 +195,19 @@ function renderSolicitudes(){
 }
 
 async function generarBorrador(fila,btn){
-  btn.innerHTML='<span class="spinner" style="border-top-color:var(--verde);border-color:var(--borde);"></span>';btn.disabled=true;
-  const res=await api({accion:"generar_borrador",fila});
+  btn.innerHTML='⏳';btn.disabled=true;
+  await apiPost({accion:"generar_borrador",fila});
+  toast("Borrador enviado. Actualiza en unos segundos.");
   btn.innerHTML="📧";btn.disabled=false;
-  if(res.ok){toast("Borrador creado en Gmail ✓");setTimeout(cargarSolicitudes,2000);}
-  else toast(res.msg||"Error.","error");
+  setTimeout(cargarSolicitudes,3000);
 }
 
 async function eliminarSolicitud(fila,btn){
   if(!confirm("¿Eliminar esta solicitud?"))return;
   btn.disabled=true;
-  const res=await api({accion:"eliminar_solicitud",fila});
-  if(res.ok){toast("Eliminada.");setTimeout(cargarSolicitudes,2000);}
-  else{toast(res.msg||"Error.","error");btn.disabled=false;}
+  await apiPost({accion:"eliminar_solicitud",fila});
+  toast("Solicitud eliminada.");
+  setTimeout(cargarSolicitudes,3000);
 }
 
 function abrirEdicion(s){
@@ -215,9 +229,9 @@ function abrirEdicion(s){
 }
 
 async function guardarEdicion(){
-  const res=await api({accion:"editar_solicitud",fila:document.getElementById("edit-fila").value,nombre:document.getElementById("edit-nombre").value,email:document.getElementById("edit-email").value,tipoDoc:document.getElementById("edit-tipodoc").value,numDoc:document.getElementById("edit-numdoc").value,telefono:document.getElementById("edit-telefono").value,intermediario:document.getElementById("edit-intermediario").value,direccion:document.getElementById("edit-direccion").value,cp:document.getElementById("edit-cp").value,municipio:document.getElementById("edit-municipio").value,refCatastral:document.getElementById("edit-refcat").value,municipioExp:document.getElementById("edit-municipioexp").value,observaciones:document.getElementById("edit-observaciones").value});
-  if(res.ok){toast("Actualizada ✓");cerrarModal("modal-solicitud");setTimeout(cargarSolicitudes,2000);}
-  else toast(res.msg||"Error.","error");
+  await apiPost({accion:"editar_solicitud",fila:document.getElementById("edit-fila").value,nombre:document.getElementById("edit-nombre").value,email:document.getElementById("edit-email").value,tipoDoc:document.getElementById("edit-tipodoc").value,numDoc:document.getElementById("edit-numdoc").value,telefono:document.getElementById("edit-telefono").value,intermediario:document.getElementById("edit-intermediario").value,direccion:document.getElementById("edit-direccion").value,cp:document.getElementById("edit-cp").value,municipio:document.getElementById("edit-municipio").value,refCatastral:document.getElementById("edit-refcat").value,municipioExp:document.getElementById("edit-municipioexp").value,observaciones:document.getElementById("edit-observaciones").value});
+  toast("Actualizada ✓");cerrarModal("modal-solicitud");
+  setTimeout(cargarSolicitudes,3000);
 }
 
 async function guardarNuevaSolicitud(){
@@ -226,24 +240,25 @@ async function guardarNuevaSolicitud(){
   const direccion=document.getElementById("ns-direccion").value.trim();
   if(!nombre||!numDoc||!direccion){toast("Rellena nombre, nº documento y dirección.","error");return;}
   const btn=document.querySelector("#panel-nueva .btn-primary");
-  btn.innerHTML='<span class="spinner"></span> Guardando...';btn.disabled=true;
-  const res=await api({accion:"nueva_solicitud",nombre,tipoDoc:document.getElementById("ns-tipodoc").value,numDoc,telefono:document.getElementById("ns-telefono").value.trim(),email:document.getElementById("ns-email").value.trim(),direccion,municipio:document.getElementById("ns-municipio").value.trim(),cp:document.getElementById("ns-cp").value.trim(),refCatastral:document.getElementById("ns-refcat").value.trim(),intermediario:document.getElementById("ns-intermediario").value.trim(),municipioExp:document.getElementById("ns-municipioexp").value,observaciones:document.getElementById("ns-observaciones").value.trim()});
+  btn.innerHTML='⏳ Guardando...';btn.disabled=true;
+  await apiPost({accion:"nueva_solicitud",nombre,tipoDoc:document.getElementById("ns-tipodoc").value,numDoc,telefono:document.getElementById("ns-telefono").value.trim(),email:document.getElementById("ns-email").value.trim(),direccion,municipio:document.getElementById("ns-municipio").value.trim(),cp:document.getElementById("ns-cp").value.trim(),refCatastral:document.getElementById("ns-refcat").value.trim(),intermediario:document.getElementById("ns-intermediario").value.trim(),municipioExp:document.getElementById("ns-municipioexp").value,observaciones:document.getElementById("ns-observaciones").value.trim()});
   btn.innerHTML="💾 Guardar";btn.disabled=false;
-  if(res.ok){toast(res.msg);limpiarFormulario();cambiarTab("solicitudes");setTimeout(cargarSolicitudes,2000);}
-  else toast(res.msg||"Error.","error");
+  toast("Solicitud guardada ✓");limpiarFormulario();cambiarTab("solicitudes");
+  setTimeout(cargarSolicitudes,3000);
 }
 
 function limpiarFormulario(){
   ["ns-nombre","ns-numdoc","ns-telefono","ns-email","ns-direccion","ns-municipio","ns-cp","ns-refcat","ns-intermediario","ns-observaciones"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
-  document.getElementById("ns-tipodoc").value="DNI";
-  document.getElementById("ns-municipioexp").value="";
+  document.getElementById("ns-tipodoc").value="DNI";document.getElementById("ns-municipioexp").value="";
 }
 
 async function cargarMunicipios(){
-  const res=await api({accion:"get_municipios"});
-  municipios=res.municipios||[];
-  renderMunicipios();
-  llenarSelectMunicipios();
+  try {
+    const table = await leerSheet("Municipios DROC");
+    municipios=[];
+    if(table&&table.rows){table.rows.forEach((row,i)=>{const c=row.c;if(!c||!c[0]||!c[0].v)return;municipios.push({nombre:c[0].v,docs:c[1]?.v||'',notas:c[2]?.v||'',fila:i+2});});}
+    renderMunicipios();llenarSelectMunicipios();
+  }catch(e){console.error(e);}
 }
 
 function renderMunicipios(){
@@ -252,34 +267,28 @@ function renderMunicipios(){
   cont.innerHTML=municipios.map(m=>'<div class="mun-card"><h3>'+m.nombre+'</h3><pre>'+(m.docs||"sin documentación")+'</pre>'+(m.notas?'<p style="font-size:0.72rem;color:var(--gris-medio);margin-top:6px;font-style:italic;">'+m.notas+'</p>':"")+'<div class="mun-card-actions"><button class="btn btn-secondary btn-small" onclick=\'abrirModalMunicipio('+JSON.stringify(m)+')\'>✏️ Editar</button><button class="btn btn-danger btn-small" onclick="eliminarMunicipio(\''+m.nombre+'\')">🗑️</button></div></div>').join("");
 }
 
-function llenarSelectMunicipios(){
-  ["ns-municipioexp","edit-municipioexp"].forEach(id=>{const sel=document.getElementById(id);if(!sel)return;const val=sel.value;sel.innerHTML='<option value="">— Selecciona —</option>'+municipios.map(m=>'<option value="'+m.nombre+'">'+m.nombre+'</option>').join("");sel.value=val;});
-}
+function llenarSelectMunicipios(){["ns-municipioexp","edit-municipioexp"].forEach(id=>{const sel=document.getElementById(id);if(!sel)return;const val=sel.value;sel.innerHTML='<option value="">— Selecciona —</option>'+municipios.map(m=>'<option value="'+m.nombre+'">'+m.nombre+'</option>').join("");sel.value=val;});}
 
 function abrirModalMunicipio(m){
   document.getElementById("modal-mun-titulo").textContent=m?"Editar: "+m.nombre:"Nuevo municipio";
-  document.getElementById("mun-nombre").value=m?m.nombre:"";
-  document.getElementById("mun-nombre").disabled=!!m;
-  document.getElementById("mun-docs").value=m?m.docs:"";
-  document.getElementById("mun-notas").value=m?m.notas:"";
+  document.getElementById("mun-nombre").value=m?m.nombre:"";document.getElementById("mun-nombre").disabled=!!m;
+  document.getElementById("mun-docs").value=m?m.docs:"";document.getElementById("mun-notas").value=m?m.notas:"";
   document.getElementById("modal-municipio").classList.add("show");
 }
 
 async function guardarMunicipio(){
-  const nombre=document.getElementById("mun-nombre").value.trim();
-  const docs=document.getElementById("mun-docs").value.trim();
-  const notas=document.getElementById("mun-notas").value.trim();
-  if(!nombre){toast("El nombre es obligatorio.","error");return;}
-  const res=await api({accion:"guardar_municipio",nombre,docs,notas});
-  if(res.ok){toast(res.msg);cerrarModal("modal-municipio");setTimeout(cargarMunicipios,2000);}
-  else toast(res.msg||"Error.","error");
+  const nombre=document.getElementById("mun-nombre").value.trim(),docs=document.getElementById("mun-docs").value.trim(),notas=document.getElementById("mun-notas").value.trim();
+  if(!nombre){toast("Nombre obligatorio.","error");return;}
+  await apiPost({accion:"guardar_municipio",nombre,docs,notas});
+  toast("Municipio guardado ✓");cerrarModal("modal-municipio");
+  setTimeout(cargarMunicipios,3000);
 }
 
 async function eliminarMunicipio(nombre){
   if(!confirm('¿Eliminar "'+nombre+'"?'))return;
-  const res=await api({accion:"eliminar_municipio",nombre});
-  if(res.ok){toast(res.msg);setTimeout(cargarMunicipios,2000);}
-  else toast(res.msg||"Error.","error");
+  await apiPost({accion:"eliminar_municipio",nombre});
+  toast("Municipio eliminado.");
+  setTimeout(cargarMunicipios,3000);
 }
 </script>
 </body>
