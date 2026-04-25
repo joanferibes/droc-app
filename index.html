@@ -43,7 +43,6 @@ tr:hover td{background:#f9fcfc;}
 .badge{display:inline-block;padding:3px 9px;border-radius:12px;font-size:0.72rem;font-weight:600;}
 .badge-nuevo{background:#fef3c7;color:#92400e;}
 .badge-borrador{background:#dcfce7;color:#166534;}
-.badge-enviada{background:#dbeafe;color:#1e40af;}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--verde);color:white;padding:13px 20px;border-radius:8px;font-size:0.88rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);display:none;z-index:9999;max-width:360px;}
 .toast.error{background:var(--rojo);}
 .toast.show{display:block;}
@@ -54,8 +53,6 @@ tr:hover td{background:#f9fcfc;}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
 .empty{text-align:center;padding:48px 24px;color:var(--gris-medio);}
 .empty-icon{font-size:2.5rem;margin-bottom:10px;}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.6s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -68,26 +65,28 @@ tr:hover td{background:#f9fcfc;}
   <div class="tab" onclick="cambiarTab('nueva')">➕ Nueva</div>
   <div class="tab" onclick="cambiarTab('municipios')">🏛️ Municipios</div>
 </div>
+
 <div class="panel active" id="panel-solicitudes">
   <div class="card">
     <div class="card-title"><span>Solicitudes recibidas</span><button class="btn btn-secondary btn-small" onclick="cargarSolicitudes()">🔄 Actualizar</button></div>
     <div id="tabla-solicitudes"><div class="empty"><div class="empty-icon">⏳</div><p>Cargando...</p></div></div>
   </div>
 </div>
+
 <div class="panel" id="panel-nueva">
   <div class="card">
     <div class="card-title">Nueva solicitud DROC</div>
     <div class="form-grid">
-      <div><label>Nombre completo *</label><input type="text" id="ns-nombre" placeholder="Nombre y apellidos"></div>
-      <div><label>Email</label><input type="email" id="ns-email" placeholder="cliente@email.com"></div>
+      <div><label>Nombre completo *</label><input type="text" id="ns-nombre"></div>
+      <div><label>Email</label><input type="email" id="ns-email"></div>
       <div><label>Tipo doc</label><select id="ns-tipodoc"><option value="DNI">DNI</option><option value="NIE">NIE</option><option value="Pasaporte">Pasaporte</option></select></div>
-      <div><label>Nº documento *</label><input type="text" id="ns-numdoc" placeholder="12345678A"></div>
-      <div><label>Teléfono</label><input type="tel" id="ns-telefono" placeholder="600 000 000"></div>
-      <div><label>Intermediario</label><input type="text" id="ns-intermediario" placeholder="Inmobiliaria / gestor"></div>
-      <div class="form-full"><label>Dirección *</label><input type="text" id="ns-direccion" placeholder="C/ Exemple, 12, 1º"></div>
-      <div><label>CP</label><input type="text" id="ns-cp" placeholder="03760"></div>
-      <div><label>Municipio</label><input type="text" id="ns-municipio" placeholder="Pedreguer"></div>
-      <div><label>Ref. catastral</label><input type="text" id="ns-refcat" placeholder="0000000XX0000X0000XX"></div>
+      <div><label>Nº documento *</label><input type="text" id="ns-numdoc"></div>
+      <div><label>Teléfono</label><input type="tel" id="ns-telefono"></div>
+      <div><label>Intermediario</label><input type="text" id="ns-intermediario"></div>
+      <div class="form-full"><label>Dirección *</label><input type="text" id="ns-direccion"></div>
+      <div><label>CP</label><input type="text" id="ns-cp"></div>
+      <div><label>Municipio</label><input type="text" id="ns-municipio"></div>
+      <div><label>Ref. catastral</label><input type="text" id="ns-refcat"></div>
       <div><label>Municipio expediente *</label><select id="ns-municipioexp"><option value="">— Selecciona —</option></select></div>
       <div class="form-full"><label>Observaciones</label><textarea id="ns-observaciones" rows="3"></textarea></div>
     </div>
@@ -97,12 +96,14 @@ tr:hover td{background:#f9fcfc;}
     </div>
   </div>
 </div>
+
 <div class="panel" id="panel-municipios">
   <div class="card">
     <div class="card-title"><span>Municipios</span><button class="btn btn-primary btn-small" onclick="abrirModalMunicipio(null)">➕ Nuevo</button></div>
     <div class="mun-grid" id="lista-municipios"><div class="empty"><div class="empty-icon">🏛️</div><p>Cargando...</p></div></div>
   </div>
 </div>
+
 <div class="modal-overlay" id="modal-solicitud">
   <div class="modal">
     <h2>✏️ Editar solicitud</h2>
@@ -127,11 +128,12 @@ tr:hover td{background:#f9fcfc;}
     </div>
   </div>
 </div>
+
 <div class="modal-overlay" id="modal-municipio">
   <div class="modal">
     <h2 id="modal-mun-titulo">Nuevo municipio</h2>
-    <div style="margin-bottom:14px;"><label>Nombre *</label><input type="text" id="mun-nombre" placeholder="Ej: Pedreguer"></div>
-    <div style="margin-bottom:14px;"><label>Documentación</label><textarea id="mun-docs" rows="8" placeholder="- DNI/NIE titular&#10;- Escritura de propiedad"></textarea></div>
+    <div style="margin-bottom:14px;"><label>Nombre *</label><input type="text" id="mun-nombre"></div>
+    <div style="margin-bottom:14px;"><label>Documentación (una línea por documento)</label><textarea id="mun-docs" rows="8"></textarea></div>
     <div style="margin-bottom:14px;"><label>Notas internas</label><textarea id="mun-notas" rows="3"></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="cerrarModal('modal-municipio')">Cancelar</button>
@@ -139,23 +141,26 @@ tr:hover td{background:#f9fcfc;}
     </div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
+
 <script>
+// ⚠️ PEGAR AQUI EL ID DE TU APPS SCRIPT (la URL completa /exec)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzh2olkhwE-EsBgTuy9xx7GCOM7RYQHu9dllOOex53h2Q-xzs18vKrvFqdTSaVosX7x8w/exec";
 const SHEET_ID = "10zmBfLB03y_zxK35y2tO83s3qixGIBSM9cmxyORYtpU";
-let municipios=[], solicitudes=[];
 
+let municipios=[], solicitudes=[];
 window.onload = () => { cargarMunicipios(); cargarSolicitudes(); };
 
-// LEER del Sheet público (sin CORS)
+// LEER del Sheet público
 async function leerSheet(hoja) {
   const url = "https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?sheet="+encodeURIComponent(hoja)+"&tqx=out:json";
   const r = await fetch(url);
   const txt = await r.text();
-  return JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}') + 1)).table;
+  return JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}')+1)).table;
 }
 
-// ESCRIBIR al Apps Script (POST no-cors text/plain - VERIFICADO que funciona)
+// ESCRIBIR al Apps Script
 function apiPost(data) {
   return fetch(SCRIPT_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain"}, body:JSON.stringify(data)});
 }
@@ -172,10 +177,30 @@ async function cargarSolicitudes() {
     if (table && table.rows) {
       table.rows.forEach((row, i) => {
         const c = row.c;
-        if (!c || !c[0] || !c[0].v) return;
-        const fecha = c[0].v ? String(c[0].v).replace(/^Date\(/, '').replace(/\)$/, '').split(',') : [];
-        const fechaStr = fecha.length >= 3 ? String(parseInt(fecha[2])).padStart(2,'0')+'/'+String(parseInt(fecha[1])+1).padStart(2,'0')+'/'+fecha[0] : '';
-        solicitudes.push({fila:i+2, fechaRecepcion:fechaStr, nombre:c[1]?.v||'', tipoDoc:c[2]?.v||'DNI', numDoc:c[3]?.v||'', telefono:c[4]?.v||'', email:c[5]?.v||'', direccion:c[6]?.v||'', municipio:c[7]?.v||'', cp:c[8]?.v||'', refCatastral:c[9]?.v||'', intermediario:c[10]?.v||'', municipioExp:c[11]?.v||'', estado:c[12]?.v||'Nuevo', observaciones:c[14]?.v||''});
+        if (!c || !c[1] || !c[1].v) return;
+        let fechaStr = '';
+        if (c[0] && c[0].v) {
+          const m = String(c[0].v).match(/Date\((\d+),(\d+),(\d+)/);
+          if (m) fechaStr = String(m[3]).padStart(2,'0')+'/'+String(parseInt(m[2])+1).padStart(2,'0')+'/'+m[1];
+          else fechaStr = String(c[0].v);
+        }
+        solicitudes.push({
+          fila: i+2,
+          fechaRecepcion: fechaStr,
+          nombre: c[1]?.v||'',
+          tipoDoc: c[2]?.v||'DNI',
+          numDoc: c[3]?.v||'',
+          telefono: c[4]?.v||'',
+          email: c[5]?.v||'',
+          direccion: c[6]?.v||'',
+          municipio: c[7]?.v||'',
+          cp: c[8]?.v||'',
+          refCatastral: c[9]?.v||'',
+          intermediario: c[10]?.v||'',
+          municipioExp: c[11]?.v||'',
+          estado: c[12]?.v||'Nuevo',
+          observaciones: c[14]?.v||''
+        });
       });
       solicitudes.reverse();
     }
@@ -187,8 +212,8 @@ async function cargarSolicitudes() {
 
 function renderSolicitudes(){
   const cont=document.getElementById("tabla-solicitudes");
-  if(!solicitudes.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📂</div><p>No hay solicitudes todavía.</p></div>';return;}
-  const badge=e=>e==="Borrador"?'<span class="badge badge-borrador">Borrador ✓</span>':e==="Enviada"?'<span class="badge badge-enviada">Enviada</span>':'<span class="badge badge-nuevo">🔔 Nuevo</span>';
+  if(!solicitudes.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📂</div><p>No hay solicitudes.</p></div>';return;}
+  const badge=e=>e==="Borrador"?'<span class="badge badge-borrador">Borrador ✓</span>':'<span class="badge badge-nuevo">🔔 Nuevo</span>';
   cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Documento</th><th>Dirección</th><th>Municipio</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+
     solicitudes.map(s=>'<tr><td style="white-space:nowrap;">'+s.fechaRecepcion+'</td><td><strong>'+s.nombre+'</strong><br><small>'+(s.email||s.telefono||"")+'</small></td><td style="white-space:nowrap;">'+s.tipoDoc+' '+s.numDoc+'</td><td>'+s.direccion+'<br><small>'+(s.cp?s.cp+" · ":"")+s.municipio+'</small></td><td>'+(s.municipioExp||s.municipio||"—")+'</td><td>'+badge(s.estado)+'</td><td style="white-space:nowrap;"><button class="btn btn-secondary btn-small" onclick=\'abrirEdicion('+JSON.stringify(s)+')\' style="margin-bottom:4px;">✏️</button> <button class="btn btn-secondary btn-small" onclick="generarBorrador('+s.fila+',this)" style="margin-bottom:4px;">📧</button> <button class="btn btn-danger btn-small" onclick="eliminarSolicitud('+s.fila+',this)">🗑️</button></td></tr>').join("")+
     '</tbody></table></div>';
@@ -197,7 +222,7 @@ function renderSolicitudes(){
 async function generarBorrador(fila,btn){
   btn.innerHTML='⏳';btn.disabled=true;
   await apiPost({accion:"generar_borrador",fila});
-  toast("Borrador enviado. Actualiza en unos segundos.");
+  toast("Borrador con PDF creado en Gmail ✓");
   btn.innerHTML="📧";btn.disabled=false;
   setTimeout(cargarSolicitudes,3000);
 }
@@ -206,7 +231,7 @@ async function eliminarSolicitud(fila,btn){
   if(!confirm("¿Eliminar esta solicitud?"))return;
   btn.disabled=true;
   await apiPost({accion:"eliminar_solicitud",fila});
-  toast("Solicitud eliminada.");
+  toast("Eliminada.");
   setTimeout(cargarSolicitudes,3000);
 }
 
@@ -238,11 +263,8 @@ async function guardarNuevaSolicitud(){
   const nombre=document.getElementById("ns-nombre").value.trim();
   const numDoc=document.getElementById("ns-numdoc").value.trim();
   const direccion=document.getElementById("ns-direccion").value.trim();
-  if(!nombre||!numDoc||!direccion){toast("Rellena nombre, nº documento y dirección.","error");return;}
-  const btn=document.querySelector("#panel-nueva .btn-primary");
-  btn.innerHTML='⏳ Guardando...';btn.disabled=true;
+  if(!nombre||!numDoc||!direccion){toast("Rellena nombre, nº doc y dirección.","error");return;}
   await apiPost({accion:"nueva_solicitud",nombre,tipoDoc:document.getElementById("ns-tipodoc").value,numDoc,telefono:document.getElementById("ns-telefono").value.trim(),email:document.getElementById("ns-email").value.trim(),direccion,municipio:document.getElementById("ns-municipio").value.trim(),cp:document.getElementById("ns-cp").value.trim(),refCatastral:document.getElementById("ns-refcat").value.trim(),intermediario:document.getElementById("ns-intermediario").value.trim(),municipioExp:document.getElementById("ns-municipioexp").value,observaciones:document.getElementById("ns-observaciones").value.trim()});
-  btn.innerHTML="💾 Guardar";btn.disabled=false;
   toast("Solicitud guardada ✓");limpiarFormulario();cambiarTab("solicitudes");
   setTimeout(cargarSolicitudes,3000);
 }
@@ -264,7 +286,7 @@ async function cargarMunicipios(){
 function renderMunicipios(){
   const cont=document.getElementById("lista-municipios");
   if(!municipios.length){cont.innerHTML='<div class="empty"><div class="empty-icon">🏛️</div><p>No hay municipios.</p></div>';return;}
-  cont.innerHTML=municipios.map(m=>'<div class="mun-card"><h3>'+m.nombre+'</h3><pre>'+(m.docs||"sin documentación")+'</pre>'+(m.notas?'<p style="font-size:0.72rem;color:var(--gris-medio);margin-top:6px;font-style:italic;">'+m.notas+'</p>':"")+'<div class="mun-card-actions"><button class="btn btn-secondary btn-small" onclick=\'abrirModalMunicipio('+JSON.stringify(m)+')\'>✏️ Editar</button><button class="btn btn-danger btn-small" onclick="eliminarMunicipio(\''+m.nombre+'\')">🗑️</button></div></div>').join("");
+  cont.innerHTML=municipios.map(m=>'<div class="mun-card"><h3>'+m.nombre+'</h3><pre>'+(m.docs||"sin docs")+'</pre>'+(m.notas?'<p style="font-size:0.72rem;color:var(--gris-medio);margin-top:6px;font-style:italic;">'+m.notas+'</p>':"")+'<div class="mun-card-actions"><button class="btn btn-secondary btn-small" onclick=\'abrirModalMunicipio('+JSON.stringify(m)+')\'>✏️</button><button class="btn btn-danger btn-small" onclick="eliminarMunicipio(\''+m.nombre+'\')">🗑️</button></div></div>').join("");
 }
 
 function llenarSelectMunicipios(){["ns-municipioexp","edit-municipioexp"].forEach(id=>{const sel=document.getElementById(id);if(!sel)return;const val=sel.value;sel.innerHTML='<option value="">— Selecciona —</option>'+municipios.map(m=>'<option value="'+m.nombre+'">'+m.nombre+'</option>').join("");sel.value=val;});}
@@ -277,7 +299,9 @@ function abrirModalMunicipio(m){
 }
 
 async function guardarMunicipio(){
-  const nombre=document.getElementById("mun-nombre").value.trim(),docs=document.getElementById("mun-docs").value.trim(),notas=document.getElementById("mun-notas").value.trim();
+  const nombre=document.getElementById("mun-nombre").value.trim();
+  const docs=document.getElementById("mun-docs").value.trim();
+  const notas=document.getElementById("mun-notas").value.trim();
   if(!nombre){toast("Nombre obligatorio.","error");return;}
   await apiPost({accion:"guardar_municipio",nombre,docs,notas});
   toast("Municipio guardado ✓");cerrarModal("modal-municipio");
@@ -287,7 +311,7 @@ async function guardarMunicipio(){
 async function eliminarMunicipio(nombre){
   if(!confirm('¿Eliminar "'+nombre+'"?'))return;
   await apiPost({accion:"eliminar_municipio",nombre});
-  toast("Municipio eliminado.");
+  toast("Eliminado.");
   setTimeout(cargarMunicipios,3000);
 }
 </script>
