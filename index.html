@@ -14,26 +14,29 @@ body{font-family:Arial,sans-serif;background:var(--gris-claro);color:var(--gris)
 .tabs{display:flex;background:white;border-bottom:2px solid var(--borde);padding:0 24px;}
 .tab{padding:12px 20px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--gris-medio);border-bottom:3px solid transparent;margin-bottom:-2px;}
 .tab.active{color:var(--verde);border-bottom-color:var(--verde);}
-.panel{display:none;padding:24px;max-width:1000px;}
+.panel{display:none;padding:24px;max-width:1100px;}
 .panel.active{display:block;}
 .card{background:white;border-radius:10px;border:1px solid var(--borde);padding:20px;margin-bottom:20px;}
 .card-title{font-size:0.8rem;font-weight:bold;color:var(--verde);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--borde);display:flex;align-items:center;justify-content:space-between;}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .form-full{grid-column:1/-1;}
 label{font-size:0.78rem;font-weight:600;color:var(--gris-medio);display:block;margin-bottom:5px;}
-input,select,textarea{width:100%;padding:9px 12px;border:1px solid var(--borde);border-radius:6px;font-size:0.88rem;color:var(--gris);background:white;}
+input,select,textarea{width:100%;padding:9px 12px;border:1px solid var(--borde);border-radius:6px;font-size:0.88rem;color:var(--gris);background:white;font-family:Arial,sans-serif;}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--verde);}
-textarea{resize:vertical;min-height:80px;}
+textarea{resize:vertical;min-height:100px;font-family:'Courier New',monospace;font-size:0.82rem;line-height:1.5;}
 .btn{padding:9px 18px;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;display:inline-flex;align-items:center;gap:7px;}
 .btn-primary{background:var(--verde);color:white;}
 .btn-primary:hover{background:#3d7068;}
 .btn-secondary{background:var(--verde-fondo);color:var(--verde);border:1px solid var(--borde);}
 .btn-danger{background:#fdf2f2;color:var(--rojo);border:1px solid #f5c6c6;}
 .btn-small{padding:5px 10px;font-size:0.78rem;}
-.mun-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-top:12px;}
+.mun-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:12px;}
 .mun-card{background:var(--verde-fondo);border:1px solid var(--borde);border-radius:8px;padding:14px;}
-.mun-card h3{font-size:0.92rem;font-weight:bold;color:var(--verde);margin-bottom:8px;}
-.mun-card pre{font-size:0.75rem;color:var(--gris-medio);white-space:pre-wrap;line-height:1.5;max-height:100px;overflow:hidden;}
+.mun-card h3{font-size:0.95rem;font-weight:bold;color:var(--verde);margin-bottom:8px;}
+.mun-card-info{font-size:0.74rem;color:var(--gris-medio);margin-bottom:6px;}
+.mun-card-flags{margin:8px 0;font-size:0.74rem;}
+.mun-card-flags span{display:inline-block;background:white;border:1px solid var(--borde);padding:3px 8px;border-radius:4px;margin-right:4px;color:var(--gris-medio);}
+.mun-card-flags span.active{background:var(--verde);color:white;border-color:var(--verde);}
 .mun-card-actions{display:flex;gap:8px;margin-top:10px;}
 .table-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:0.82rem;}
@@ -43,29 +46,40 @@ tr:hover td{background:#f9fcfc;}
 .badge{display:inline-block;padding:3px 9px;border-radius:12px;font-size:0.72rem;font-weight:600;}
 .badge-nuevo{background:#fef3c7;color:#92400e;}
 .badge-borrador{background:#dcfce7;color:#166534;}
+.badge-visita{background:#dbeafe;color:#1e40af;}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--verde);color:white;padding:13px 20px;border-radius:8px;font-size:0.88rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);display:none;z-index:9999;max-width:360px;}
 .toast.error{background:var(--rojo);}
 .toast.show{display:block;}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;z-index:1000;align-items:center;justify-content:center;}
 .modal-overlay.show{display:flex;}
-.modal{background:white;border-radius:12px;padding:28px;max-width:620px;width:95%;max-height:90vh;overflow-y:auto;}
-.modal h2{font-size:1rem;font-weight:bold;color:var(--verde);margin-bottom:20px;}
+.modal{background:white;border-radius:12px;padding:28px;max-width:780px;width:95%;max-height:92vh;overflow-y:auto;}
+.modal h2{font-size:1.1rem;font-weight:bold;color:var(--verde);margin-bottom:20px;}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
 .empty{text-align:center;padding:48px 24px;color:var(--gris-medio);}
 .empty-icon{font-size:2.5rem;margin-bottom:10px;}
+.section-block{background:var(--gris-claro);padding:14px;border-radius:8px;margin-bottom:14px;border-left:4px solid var(--verde);}
+.section-block h3{font-size:0.85rem;font-weight:bold;color:var(--verde);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.section-block p{font-size:0.74rem;color:var(--gris-medio);margin-bottom:8px;}
+.flag-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:6px;}
+.flag-row label{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--gris);font-weight:normal;cursor:pointer;}
+.flag-row input[type=checkbox]{width:18px;height:18px;cursor:pointer;}
+.acciones-btns{display:flex;gap:4px;flex-wrap:wrap;}
 </style>
 </head>
 <body>
+
 <div class="header">
   <h1>Sistema DROC — Joanfe Ribes Oficina Tècnica</h1>
   <p>Gestió de Declaracions Responsables de Segona Ocupació</p>
 </div>
+
 <div class="tabs">
   <div class="tab active" onclick="cambiarTab('solicitudes')">📋 Solicitudes</div>
   <div class="tab" onclick="cambiarTab('nueva')">➕ Nueva</div>
   <div class="tab" onclick="cambiarTab('municipios')">🏛️ Municipios</div>
 </div>
 
+<!-- ════════ PANEL SOLICITUDES ════════ -->
 <div class="panel active" id="panel-solicitudes">
   <div class="card">
     <div class="card-title"><span>Solicitudes recibidas</span><button class="btn btn-secondary btn-small" onclick="cargarSolicitudes()">🔄 Actualizar</button></div>
@@ -73,6 +87,7 @@ tr:hover td{background:#f9fcfc;}
   </div>
 </div>
 
+<!-- ════════ PANEL NUEVA SOLICITUD ════════ -->
 <div class="panel" id="panel-nueva">
   <div class="card">
     <div class="card-title">Nueva solicitud DROC</div>
@@ -88,7 +103,7 @@ tr:hover td{background:#f9fcfc;}
       <div><label>Municipio</label><input type="text" id="ns-municipio"></div>
       <div><label>Ref. catastral</label><input type="text" id="ns-refcat"></div>
       <div><label>Municipio expediente *</label><select id="ns-municipioexp"><option value="">— Selecciona —</option></select></div>
-      <div class="form-full"><label>Observaciones</label><textarea id="ns-observaciones" rows="3"></textarea></div>
+      <div class="form-full"><label>Observaciones</label><textarea id="ns-observaciones" rows="3" style="font-family:Arial,sans-serif;"></textarea></div>
     </div>
     <div style="margin-top:18px;display:flex;gap:12px;">
       <button class="btn btn-primary" onclick="guardarNuevaSolicitud()">💾 Guardar</button>
@@ -97,6 +112,7 @@ tr:hover td{background:#f9fcfc;}
   </div>
 </div>
 
+<!-- ════════ PANEL MUNICIPIOS ════════ -->
 <div class="panel" id="panel-municipios">
   <div class="card">
     <div class="card-title"><span>Municipios</span><button class="btn btn-primary btn-small" onclick="abrirModalMunicipio(null)">➕ Nuevo</button></div>
@@ -104,6 +120,7 @@ tr:hover td{background:#f9fcfc;}
   </div>
 </div>
 
+<!-- ════════ MODAL EDITAR SOLICITUD ════════ -->
 <div class="modal-overlay" id="modal-solicitud">
   <div class="modal">
     <h2>✏️ Editar solicitud</h2>
@@ -120,7 +137,7 @@ tr:hover td{background:#f9fcfc;}
       <div><label>Municipio</label><input type="text" id="edit-municipio"></div>
       <div><label>Ref. catastral</label><input type="text" id="edit-refcat"></div>
       <div><label>Municipio expediente</label><select id="edit-municipioexp"><option value="">— Selecciona —</option></select></div>
-      <div class="form-full"><label>Observaciones</label><textarea id="edit-observaciones" rows="3"></textarea></div>
+      <div class="form-full"><label>Observaciones</label><textarea id="edit-observaciones" rows="3" style="font-family:Arial,sans-serif;"></textarea></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="cerrarModal('modal-solicitud')">Cancelar</button>
@@ -129,12 +146,64 @@ tr:hover td{background:#f9fcfc;}
   </div>
 </div>
 
+<!-- ════════ MODAL DATOS DEL PROYECTO (NUEVO FASE 2) ════════ -->
+<div class="modal-overlay" id="modal-proyecto">
+  <div class="modal">
+    <h2>📂 Datos del proyecto</h2>
+    <p style="font-size:0.82rem;color:var(--gris-medio);margin-bottom:18px;">Datos internos del expediente. Todos los campos son opcionales.</p>
+    <input type="hidden" id="proy-fila">
+    <div class="form-grid">
+      <div><label>Nº Expediente</label><input type="text" id="proy-numexp" placeholder="Ej: 2026-DROC-001"></div>
+      <div><label>Carpeta Drive (URL)</label><input type="text" id="proy-carpeta" placeholder="https://drive.google.com/..."></div>
+      <div><label>Superficie útil (m²)</label><input type="text" id="proy-suputil" placeholder="Ej: 95"></div>
+      <div><label>Año de construcción</label><input type="text" id="proy-anyo" placeholder="Según catastro"></div>
+      <div><label>Fecha otorgamiento Cédula/DROC anterior</label><input type="date" id="proy-fechaced"></div>
+      <div><label>Nº Exp. Cédula/DROC anterior</label><input type="text" id="proy-numexpced"></div>
+      <div class="form-full"><label>Fecha Licencia de Obras (DROC1)</label><input type="date" id="proy-fechalic"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-proyecto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarProyecto()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MODAL EDITAR MUNICIPIO (3 TEXTAREAS + FLAGS) ════════ -->
 <div class="modal-overlay" id="modal-municipio">
   <div class="modal">
     <h2 id="modal-mun-titulo">Nuevo municipio</h2>
-    <div style="margin-bottom:14px;"><label>Nombre *</label><input type="text" id="mun-nombre"></div>
-    <div style="margin-bottom:14px;"><label>Documentación (una línea por documento)</label><textarea id="mun-docs" rows="8"></textarea></div>
-    <div style="margin-bottom:14px;"><label>Notas internas</label><textarea id="mun-notas" rows="3"></textarea></div>
+
+    <div style="margin-bottom:14px;">
+      <label>Nombre *</label>
+      <input type="text" id="mun-nombre" placeholder="Ej: PEDREGUER">
+    </div>
+
+    <div class="section-block">
+      <h3>📁 Documentación CLIENTE</h3>
+      <p>Documentos que aporta el cliente. Una línea por documento. Texto en MAYÚSCULAS.</p>
+      <textarea id="mun-doc-cliente" rows="8" placeholder="DNI DEL TITULAR.&#10;ESCRITURA DE PROPIEDAD..."></textarea>
+    </div>
+
+    <div class="section-block">
+      <h3>🏢 Documentación TÉCNICA a generar</h3>
+      <p>Documentos que prepara el estudio. Una línea por documento.</p>
+      <textarea id="mun-doc-tecnica" rows="8" placeholder="MANDATO DE REPRESENTACIÓN.&#10;CERTIFICADO TÉCNICO..."></textarea>
+    </div>
+
+    <div class="section-block">
+      <h3>✅ Checklist VISITA</h3>
+      <p>Items a revisar en la visita técnica. Una línea por item.</p>
+      <textarea id="mun-checklist" rows="10" placeholder="SUMINISTRO DE AGUA: CONEXIÓN ACTIVA&#10;..."></textarea>
+    </div>
+
+    <div class="section-block">
+      <h3>🚩 Flags del municipio</h3>
+      <div class="flag-row">
+        <label><input type="checkbox" id="mun-flag-alcant"> Pide certificado alcantarillado (con 2 fotos)</label>
+        <label><input type="checkbox" id="mun-flag-plano"> Pide plano (croquis a mano)</label>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="cerrarModal('modal-municipio')">Cancelar</button>
       <button class="btn btn-primary" onclick="guardarMunicipio()">💾 Guardar</button>
@@ -145,14 +214,13 @@ tr:hover td{background:#f9fcfc;}
 <div class="toast" id="toast"></div>
 
 <script>
-// ⚠️ PEGAR AQUI EL ID DE TU APPS SCRIPT (la URL completa /exec)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzh2olkhwE-EsBgTuy9xx7GCOM7RYQHu9dllOOex53h2Q-xzs18vKrvFqdTSaVosX7x8w/exec";
 const SHEET_ID = "10zmBfLB03y_zxK35y2tO83s3qixGIBSM9cmxyORYtpU";
 
 let municipios=[], solicitudes=[];
+
 window.onload = () => { cargarMunicipios(); cargarSolicitudes(); };
 
-// LEER del Sheet público
 async function leerSheet(hoja) {
   const url = "https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?sheet="+encodeURIComponent(hoja)+"&tqx=out:json";
   const r = await fetch(url);
@@ -160,7 +228,6 @@ async function leerSheet(hoja) {
   return JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}')+1)).table;
 }
 
-// ESCRIBIR al Apps Script
 function apiPost(data) {
   return fetch(SCRIPT_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain"}, body:JSON.stringify(data)});
 }
@@ -169,6 +236,7 @@ function toast(msg,tipo="ok"){const el=document.getElementById("toast");el.textC
 function cerrarModal(id){document.getElementById(id).classList.remove("show");}
 function cambiarTab(tab){const ids=["solicitudes","nueva","municipios"];document.querySelectorAll(".tab").forEach((t,i)=>t.classList.toggle("active",ids[i]===tab));document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("panel-"+tab).classList.add("active");}
 
+// ════════ CARGAR SOLICITUDES (22 columnas) ════════
 async function cargarSolicitudes() {
   document.getElementById("tabla-solicitudes").innerHTML='<div class="empty"><div class="empty-icon">⏳</div><p>Cargando...</p></div>';
   try {
@@ -183,6 +251,13 @@ async function cargarSolicitudes() {
           const m = String(c[0].v).match(/Date\((\d+),(\d+),(\d+)/);
           if (m) fechaStr = String(m[3]).padStart(2,'0')+'/'+String(parseInt(m[2])+1).padStart(2,'0')+'/'+m[1];
           else fechaStr = String(c[0].v);
+        }
+        // Fechas opcionales del proyecto
+        function fechaProy(idx) {
+          if (!c[idx] || c[idx].v == null) return '';
+          const m = String(c[idx].v).match(/Date\((\d+),(\d+),(\d+)/);
+          if (m) return m[1]+'-'+String(parseInt(m[2])+1).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+          return String(c[idx].v);
         }
         solicitudes.push({
           fila: i+2,
@@ -199,7 +274,15 @@ async function cargarSolicitudes() {
           intermediario: c[10]?.v||'',
           municipioExp: c[11]?.v||'',
           estado: c[12]?.v||'Nuevo',
-          observaciones: c[14]?.v||''
+          observaciones: c[14]?.v||'',
+          // Datos del proyecto (columnas 15-21)
+          numExp: c[15]?.v||'',
+          carpetaDrive: c[16]?.v||'',
+          supUtil: c[17]?.v||'',
+          anoConstruccion: c[18]?.v||'',
+          fechaCedulaAnt: fechaProy(19),
+          numExpCedulaAnt: c[20]?.v||'',
+          fechaLicenciaObras: fechaProy(21)
         });
       });
       solicitudes.reverse();
@@ -213,9 +296,26 @@ async function cargarSolicitudes() {
 function renderSolicitudes(){
   const cont=document.getElementById("tabla-solicitudes");
   if(!solicitudes.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📂</div><p>No hay solicitudes.</p></div>';return;}
-  const badge=e=>e==="Borrador"?'<span class="badge badge-borrador">Borrador ✓</span>':'<span class="badge badge-nuevo">🔔 Nuevo</span>';
-  cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Documento</th><th>Dirección</th><th>Municipio</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+
-    solicitudes.map(s=>'<tr><td style="white-space:nowrap;">'+s.fechaRecepcion+'</td><td><strong>'+s.nombre+'</strong><br><small>'+(s.email||s.telefono||"")+'</small></td><td style="white-space:nowrap;">'+s.tipoDoc+' '+s.numDoc+'</td><td>'+s.direccion+'<br><small>'+(s.cp?s.cp+" · ":"")+s.municipio+'</small></td><td>'+(s.municipioExp||s.municipio||"—")+'</td><td>'+badge(s.estado)+'</td><td style="white-space:nowrap;"><button class="btn btn-secondary btn-small" onclick=\'abrirEdicion('+JSON.stringify(s)+')\' style="margin-bottom:4px;">✏️</button> <button class="btn btn-secondary btn-small" onclick="generarBorrador('+s.fila+',this)" style="margin-bottom:4px;">📧</button> <button class="btn btn-danger btn-small" onclick="eliminarSolicitud('+s.fila+',this)">🗑️</button></td></tr>').join("")+
+  const badge=e=>{
+    if(e==="Borrador") return '<span class="badge badge-borrador">Borrador ✓</span>';
+    if(e==="Visita pendiente") return '<span class="badge badge-visita">Visita pend.</span>';
+    if(e==="Visita realizada") return '<span class="badge badge-visita">Visita ✓</span>';
+    return '<span class="badge badge-nuevo">🔔 Nuevo</span>';
+  };
+  cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Dirección</th><th>Cliente</th><th>Municipio</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+
+    solicitudes.map(s=>'<tr>'+
+      '<td style="white-space:nowrap;">'+s.fechaRecepcion+'</td>'+
+      '<td><strong>'+s.direccion+'</strong>'+(s.cp?'<br><small>'+s.cp+'</small>':'')+'</td>'+
+      '<td>'+s.nombre+'<br><small>'+(s.email||s.telefono||"")+'</small></td>'+
+      '<td>'+(s.municipioExp||s.municipio||"—")+'</td>'+
+      '<td>'+badge(s.estado)+'</td>'+
+      '<td><div class="acciones-btns">'+
+        '<button class="btn btn-secondary btn-small" onclick=\'abrirEdicion('+JSON.stringify(s)+')\' title="Editar datos">✏️</button>'+
+        '<button class="btn btn-secondary btn-small" onclick=\'abrirProyecto('+JSON.stringify(s)+')\' title="Datos del proyecto">📂</button>'+
+        '<button class="btn btn-secondary btn-small" onclick="generarBorrador('+s.fila+',this)" title="Generar email + PDF">📧</button>'+
+        '<button class="btn btn-danger btn-small" onclick="eliminarSolicitud('+s.fila+',this)" title="Eliminar">🗑️</button>'+
+      '</div></td>'+
+    '</tr>').join("")+
     '</tbody></table></div>';
 }
 
@@ -235,6 +335,7 @@ async function eliminarSolicitud(fila,btn){
   setTimeout(cargarSolicitudes,3000);
 }
 
+// ════════ EDITAR SOLICITUD ════════
 function abrirEdicion(s){
   llenarSelectMunicipios();
   document.getElementById("edit-fila").value=s.fila;
@@ -259,6 +360,37 @@ async function guardarEdicion(){
   setTimeout(cargarSolicitudes,3000);
 }
 
+// ════════ DATOS DEL PROYECTO (NUEVO FASE 2) ════════
+function abrirProyecto(s){
+  document.getElementById("proy-fila").value = s.fila;
+  document.getElementById("proy-numexp").value = s.numExp || "";
+  document.getElementById("proy-carpeta").value = s.carpetaDrive || "";
+  document.getElementById("proy-suputil").value = s.supUtil || "";
+  document.getElementById("proy-anyo").value = s.anoConstruccion || "";
+  document.getElementById("proy-fechaced").value = s.fechaCedulaAnt || "";
+  document.getElementById("proy-numexpced").value = s.numExpCedulaAnt || "";
+  document.getElementById("proy-fechalic").value = s.fechaLicenciaObras || "";
+  document.getElementById("modal-proyecto").classList.add("show");
+}
+
+async function guardarProyecto(){
+  await apiPost({
+    accion:"editar_proyecto",
+    fila: document.getElementById("proy-fila").value,
+    numExp: document.getElementById("proy-numexp").value,
+    carpetaDrive: document.getElementById("proy-carpeta").value,
+    supUtil: document.getElementById("proy-suputil").value,
+    anoConstruccion: document.getElementById("proy-anyo").value,
+    fechaCedulaAnt: document.getElementById("proy-fechaced").value,
+    numExpCedulaAnt: document.getElementById("proy-numexpced").value,
+    fechaLicenciaObras: document.getElementById("proy-fechalic").value
+  });
+  toast("Datos del proyecto guardados ✓");
+  cerrarModal("modal-proyecto");
+  setTimeout(cargarSolicitudes,3000);
+}
+
+// ════════ NUEVA SOLICITUD ════════
 async function guardarNuevaSolicitud(){
   const nombre=document.getElementById("ns-nombre").value.trim();
   const numDoc=document.getElementById("ns-numdoc").value.trim();
@@ -274,36 +406,86 @@ function limpiarFormulario(){
   document.getElementById("ns-tipodoc").value="DNI";document.getElementById("ns-municipioexp").value="";
 }
 
+// ════════ CARGAR MUNICIPIOS (estructura nueva 6 columnas) ════════
 async function cargarMunicipios(){
   try {
     const table = await leerSheet("Municipios DROC");
     municipios=[];
-    if(table&&table.rows){table.rows.forEach((row,i)=>{const c=row.c;if(!c||!c[0]||!c[0].v)return;municipios.push({nombre:c[0].v,docs:c[1]?.v||'',notas:c[2]?.v||'',fila:i+2});});}
+    if(table&&table.rows){
+      table.rows.forEach((row,i)=>{
+        const c=row.c;
+        if(!c||!c[0]||!c[0].v)return;
+        municipios.push({
+          nombre: c[0].v,
+          docCliente: c[1]?.v||'',
+          docTecnica: c[2]?.v||'',
+          checklistVisita: c[3]?.v||'',
+          flagAlcantarillado: (c[4]?.v||'NO') === 'SI',
+          flagPlano: (c[5]?.v||'NO') === 'SI',
+          fila:i+2
+        });
+      });
+    }
     renderMunicipios();llenarSelectMunicipios();
   }catch(e){console.error(e);}
 }
 
 function renderMunicipios(){
   const cont=document.getElementById("lista-municipios");
-  if(!municipios.length){cont.innerHTML='<div class="empty"><div class="empty-icon">🏛️</div><p>No hay municipios.</p></div>';return;}
-  cont.innerHTML=municipios.map(m=>'<div class="mun-card"><h3>'+m.nombre+'</h3><pre>'+(m.docs||"sin docs")+'</pre>'+(m.notas?'<p style="font-size:0.72rem;color:var(--gris-medio);margin-top:6px;font-style:italic;">'+m.notas+'</p>':"")+'<div class="mun-card-actions"><button class="btn btn-secondary btn-small" onclick=\'abrirModalMunicipio('+JSON.stringify(m)+')\'>✏️</button><button class="btn btn-danger btn-small" onclick="eliminarMunicipio(\''+m.nombre+'\')">🗑️</button></div></div>').join("");
+  if(!municipios.length){cont.innerHTML='<div class="empty"><div class="empty-icon">🏛️</div><p>No hay municipios. Ejecuta setup() en Apps Script.</p></div>';return;}
+  cont.innerHTML=municipios.map(m=>{
+    const numDocCliente = m.docCliente.split("\n").filter(s=>s.trim()).length;
+    const numDocTecnica = m.docTecnica.split("\n").filter(s=>s.trim()).length;
+    const numChecklist = m.checklistVisita.split("\n").filter(s=>s.trim()).length;
+    return '<div class="mun-card">'+
+      '<h3>'+m.nombre+'</h3>'+
+      '<div class="mun-card-info">📁 '+numDocCliente+' doc cliente · 🏢 '+numDocTecnica+' doc técnica · ✅ '+numChecklist+' items visita</div>'+
+      '<div class="mun-card-flags">'+
+        '<span'+(m.flagAlcantarillado?' class="active"':'')+'>💧 Alcant.</span>'+
+        '<span'+(m.flagPlano?' class="active"':'')+'>📐 Plano</span>'+
+      '</div>'+
+      '<div class="mun-card-actions">'+
+        '<button class="btn btn-secondary btn-small" onclick=\'abrirModalMunicipio('+JSON.stringify(m)+')\'>✏️ Editar</button>'+
+        '<button class="btn btn-danger btn-small" onclick="eliminarMunicipio(\''+m.nombre.replace(/'/g,"\\'")+'\')">🗑️</button>'+
+      '</div>'+
+    '</div>';
+  }).join("");
 }
 
-function llenarSelectMunicipios(){["ns-municipioexp","edit-municipioexp"].forEach(id=>{const sel=document.getElementById(id);if(!sel)return;const val=sel.value;sel.innerHTML='<option value="">— Selecciona —</option>'+municipios.map(m=>'<option value="'+m.nombre+'">'+m.nombre+'</option>').join("");sel.value=val;});}
+function llenarSelectMunicipios(){
+  ["ns-municipioexp","edit-municipioexp"].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const val=sel.value;
+    sel.innerHTML='<option value="">— Selecciona —</option>'+municipios.map(m=>'<option value="'+m.nombre+'">'+m.nombre+'</option>').join("");
+    sel.value=val;
+  });
+}
 
 function abrirModalMunicipio(m){
-  document.getElementById("modal-mun-titulo").textContent=m?"Editar: "+m.nombre:"Nuevo municipio";
-  document.getElementById("mun-nombre").value=m?m.nombre:"";document.getElementById("mun-nombre").disabled=!!m;
-  document.getElementById("mun-docs").value=m?m.docs:"";document.getElementById("mun-notas").value=m?m.notas:"";
+  document.getElementById("modal-mun-titulo").textContent = m ? "Editar: " + m.nombre : "Nuevo municipio";
+  document.getElementById("mun-nombre").value = m ? m.nombre : "";
+  document.getElementById("mun-nombre").disabled = !!m;
+  document.getElementById("mun-doc-cliente").value = m ? m.docCliente : "";
+  document.getElementById("mun-doc-tecnica").value = m ? m.docTecnica : "";
+  document.getElementById("mun-checklist").value = m ? m.checklistVisita : "";
+  document.getElementById("mun-flag-alcant").checked = m ? m.flagAlcantarillado : false;
+  document.getElementById("mun-flag-plano").checked = m ? m.flagPlano : false;
   document.getElementById("modal-municipio").classList.add("show");
 }
 
 async function guardarMunicipio(){
-  const nombre=document.getElementById("mun-nombre").value.trim();
-  const docs=document.getElementById("mun-docs").value.trim();
-  const notas=document.getElementById("mun-notas").value.trim();
+  const nombre = document.getElementById("mun-nombre").value.trim();
   if(!nombre){toast("Nombre obligatorio.","error");return;}
-  await apiPost({accion:"guardar_municipio",nombre,docs,notas});
+  await apiPost({
+    accion:"guardar_municipio",
+    nombre: nombre,
+    docCliente: document.getElementById("mun-doc-cliente").value,
+    docTecnica: document.getElementById("mun-doc-tecnica").value,
+    checklistVisita: document.getElementById("mun-checklist").value,
+    flagAlcantarillado: document.getElementById("mun-flag-alcant").checked,
+    flagPlano: document.getElementById("mun-flag-plano").checked
+  });
   toast("Municipio guardado ✓");cerrarModal("modal-municipio");
   setTimeout(cargarMunicipios,3000);
 }
