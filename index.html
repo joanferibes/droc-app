@@ -146,20 +146,19 @@ tr:hover td{background:#f9fcfc;}
   </div>
 </div>
 
-<!-- ════════ MODAL DATOS DEL PROYECTO (NUEVO FASE 2) ════════ -->
+<!-- ════════ MODAL DATOS DEL PROYECTO (sin FechaLicenciaObras, fechaCedulaAnt como texto) ════════ -->
 <div class="modal-overlay" id="modal-proyecto">
   <div class="modal">
     <h2>📂 Datos del proyecto</h2>
     <p style="font-size:0.82rem;color:var(--gris-medio);margin-bottom:18px;">Datos internos del expediente. Todos los campos son opcionales.</p>
     <input type="hidden" id="proy-fila">
     <div class="form-grid">
-      <div><label>Nº Expediente</label><input type="text" id="proy-numexp" placeholder="Ej: 2026-DROC-001"></div>
+      <div><label>Nº Expediente</label><input type="text" id="proy-numexp" placeholder="Ej: 001-26-C"></div>
       <div><label>Carpeta Drive (URL)</label><input type="text" id="proy-carpeta" placeholder="https://drive.google.com/..."></div>
       <div><label>Superficie útil (m²)</label><input type="text" id="proy-suputil" placeholder="Ej: 95"></div>
       <div><label>Año de construcción</label><input type="text" id="proy-anyo" placeholder="Según catastro"></div>
-      <div><label>Fecha otorgamiento Cédula/DROC anterior</label><input type="date" id="proy-fechaced"></div>
+      <div><label>Fecha otorgamiento Cédula/DROC anterior</label><input type="text" id="proy-fechaced" placeholder="Texto libre"></div>
       <div><label>Nº Exp. Cédula/DROC anterior</label><input type="text" id="proy-numexpced"></div>
-      <div class="form-full"><label>Fecha Licencia de Obras (DROC1)</label><input type="date" id="proy-fechalic"></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="cerrarModal('modal-proyecto')">Cancelar</button>
@@ -168,7 +167,7 @@ tr:hover td{background:#f9fcfc;}
   </div>
 </div>
 
-<!-- ════════ MODAL EDITAR MUNICIPIO (3 TEXTAREAS + FLAGS) ════════ -->
+<!-- ════════ MODAL EDITAR MUNICIPIO (3 textareas + flags) ════════ -->
 <div class="modal-overlay" id="modal-municipio">
   <div class="modal">
     <h2 id="modal-mun-titulo">Nuevo municipio</h2>
@@ -200,7 +199,7 @@ tr:hover td{background:#f9fcfc;}
       <h3>🚩 Flags del municipio</h3>
       <div class="flag-row">
         <label><input type="checkbox" id="mun-flag-alcant"> Pide certificado alcantarillado (con 2 fotos)</label>
-        <label><input type="checkbox" id="mun-flag-plano"> Pide plano (croquis a mano)</label>
+        <label><input type="checkbox" id="mun-flag-plano"> Pide plano</label>
       </div>
     </div>
 
@@ -232,11 +231,11 @@ function apiPost(data) {
   return fetch(SCRIPT_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain"}, body:JSON.stringify(data)});
 }
 
-function toast(msg,tipo="ok"){const el=document.getElementById("toast");el.textContent=msg;el.className="toast show"+(tipo==="error"?" error":"");setTimeout(()=>el.classList.remove("show"),3500);}
+function toast(msg,tipo="ok"){const el=document.getElementById("toast");el.textContent=msg;el.className="toast show"+(tipo==="error"?" error":"");setTimeout(()=>el.classList.remove("show"),5000);}
 function cerrarModal(id){document.getElementById(id).classList.remove("show");}
 function cambiarTab(tab){const ids=["solicitudes","nueva","municipios"];document.querySelectorAll(".tab").forEach((t,i)=>t.classList.toggle("active",ids[i]===tab));document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("panel-"+tab).classList.add("active");}
 
-// ════════ CARGAR SOLICITUDES (22 columnas) ════════
+// ════════ CARGAR SOLICITUDES (21 columnas, sin FechaLicenciaObras) ════════
 async function cargarSolicitudes() {
   document.getElementById("tabla-solicitudes").innerHTML='<div class="empty"><div class="empty-icon">⏳</div><p>Cargando...</p></div>';
   try {
@@ -251,13 +250,6 @@ async function cargarSolicitudes() {
           const m = String(c[0].v).match(/Date\((\d+),(\d+),(\d+)/);
           if (m) fechaStr = String(m[3]).padStart(2,'0')+'/'+String(parseInt(m[2])+1).padStart(2,'0')+'/'+m[1];
           else fechaStr = String(c[0].v);
-        }
-        // Fechas opcionales del proyecto
-        function fechaProy(idx) {
-          if (!c[idx] || c[idx].v == null) return '';
-          const m = String(c[idx].v).match(/Date\((\d+),(\d+),(\d+)/);
-          if (m) return m[1]+'-'+String(parseInt(m[2])+1).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
-          return String(c[idx].v);
         }
         solicitudes.push({
           fila: i+2,
@@ -275,14 +267,12 @@ async function cargarSolicitudes() {
           municipioExp: c[11]?.v||'',
           estado: c[12]?.v||'Nuevo',
           observaciones: c[14]?.v||'',
-          // Datos del proyecto (columnas 15-21)
           numExp: c[15]?.v||'',
           carpetaDrive: c[16]?.v||'',
           supUtil: c[17]?.v||'',
           anoConstruccion: c[18]?.v||'',
-          fechaCedulaAnt: fechaProy(19),
-          numExpCedulaAnt: c[20]?.v||'',
-          fechaLicenciaObras: fechaProy(21)
+          fechaCedulaAnt: c[19]?.v||'',  // texto libre
+          numExpCedulaAnt: c[20]?.v||''
         });
       });
       solicitudes.reverse();
@@ -312,7 +302,8 @@ function renderSolicitudes(){
       '<td><div class="acciones-btns">'+
         '<button class="btn btn-secondary btn-small" onclick=\'abrirEdicion('+JSON.stringify(s)+')\' title="Editar datos">✏️</button>'+
         '<button class="btn btn-secondary btn-small" onclick=\'abrirProyecto('+JSON.stringify(s)+')\' title="Datos del proyecto">📂</button>'+
-        '<button class="btn btn-secondary btn-small" onclick="generarBorrador('+s.fila+',this)" title="Generar email + PDF">📧</button>'+
+        '<button class="btn btn-secondary btn-small" onclick="generarBorrador('+s.fila+',this)" title="Email cliente + PDF">📧</button>'+
+        '<button class="btn btn-secondary btn-small" onclick="generarChecklistInterno('+s.fila+',this)" title="PDF checklist interno">📋</button>'+
         '<button class="btn btn-danger btn-small" onclick="eliminarSolicitud('+s.fila+',this)" title="Eliminar">🗑️</button>'+
       '</div></td>'+
     '</tr>').join("")+
@@ -325,6 +316,13 @@ async function generarBorrador(fila,btn){
   toast("Borrador con PDF creado en Gmail ✓");
   btn.innerHTML="📧";btn.disabled=false;
   setTimeout(cargarSolicitudes,3000);
+}
+
+async function generarChecklistInterno(fila,btn){
+  btn.innerHTML='⏳';btn.disabled=true;
+  await apiPost({accion:"generar_checklist_interno",fila});
+  toast("PDF checklist generado ✓ (revisa carpeta Drive)");
+  btn.innerHTML="📋";btn.disabled=false;
 }
 
 async function eliminarSolicitud(fila,btn){
@@ -360,7 +358,7 @@ async function guardarEdicion(){
   setTimeout(cargarSolicitudes,3000);
 }
 
-// ════════ DATOS DEL PROYECTO (NUEVO FASE 2) ════════
+// ════════ DATOS DEL PROYECTO (sin FechaLicenciaObras) ════════
 function abrirProyecto(s){
   document.getElementById("proy-fila").value = s.fila;
   document.getElementById("proy-numexp").value = s.numExp || "";
@@ -369,7 +367,6 @@ function abrirProyecto(s){
   document.getElementById("proy-anyo").value = s.anoConstruccion || "";
   document.getElementById("proy-fechaced").value = s.fechaCedulaAnt || "";
   document.getElementById("proy-numexpced").value = s.numExpCedulaAnt || "";
-  document.getElementById("proy-fechalic").value = s.fechaLicenciaObras || "";
   document.getElementById("modal-proyecto").classList.add("show");
 }
 
@@ -382,8 +379,7 @@ async function guardarProyecto(){
     supUtil: document.getElementById("proy-suputil").value,
     anoConstruccion: document.getElementById("proy-anyo").value,
     fechaCedulaAnt: document.getElementById("proy-fechaced").value,
-    numExpCedulaAnt: document.getElementById("proy-numexpced").value,
-    fechaLicenciaObras: document.getElementById("proy-fechalic").value
+    numExpCedulaAnt: document.getElementById("proy-numexpced").value
   });
   toast("Datos del proyecto guardados ✓");
   cerrarModal("modal-proyecto");
@@ -406,7 +402,7 @@ function limpiarFormulario(){
   document.getElementById("ns-tipodoc").value="DNI";document.getElementById("ns-municipioexp").value="";
 }
 
-// ════════ CARGAR MUNICIPIOS (estructura nueva 6 columnas) ════════
+// ════════ MUNICIPIOS ════════
 async function cargarMunicipios(){
   try {
     const table = await leerSheet("Municipios DROC");
@@ -462,15 +458,41 @@ function llenarSelectMunicipios(){
   });
 }
 
+// Construir biblioteca completa desde lo cargado en frontend
+function construirBibliotecaLocal() {
+  const setCli = new Set(), setTec = new Set(), setChk = new Set();
+  municipios.forEach(m=>{
+    m.docCliente.split("\n").forEach(d=>{if(d.trim()) setCli.add(d.trim());});
+    m.docTecnica.split("\n").forEach(d=>{if(d.trim()) setTec.add(d.trim());});
+    m.checklistVisita.split("\n").forEach(d=>{if(d.trim()) setChk.add(d.trim());});
+  });
+  return {
+    docCliente: [...setCli].sort().join("\n"),
+    docTecnica: [...setTec].sort().join("\n"),
+    checklistVisita: [...setChk].sort().join("\n")
+  };
+}
+
 function abrirModalMunicipio(m){
-  document.getElementById("modal-mun-titulo").textContent = m ? "Editar: " + m.nombre : "Nuevo municipio";
+  document.getElementById("modal-mun-titulo").textContent = m ? "Editar: " + m.nombre : "Nuevo municipio (con biblioteca completa cargada)";
   document.getElementById("mun-nombre").value = m ? m.nombre : "";
   document.getElementById("mun-nombre").disabled = !!m;
-  document.getElementById("mun-doc-cliente").value = m ? m.docCliente : "";
-  document.getElementById("mun-doc-tecnica").value = m ? m.docTecnica : "";
-  document.getElementById("mun-checklist").value = m ? m.checklistVisita : "";
-  document.getElementById("mun-flag-alcant").checked = m ? m.flagAlcantarillado : false;
-  document.getElementById("mun-flag-plano").checked = m ? m.flagPlano : false;
+
+  if (m) {
+    document.getElementById("mun-doc-cliente").value = m.docCliente;
+    document.getElementById("mun-doc-tecnica").value = m.docTecnica;
+    document.getElementById("mun-checklist").value = m.checklistVisita;
+    document.getElementById("mun-flag-alcant").checked = m.flagAlcantarillado;
+    document.getElementById("mun-flag-plano").checked = m.flagPlano;
+  } else {
+    // Nuevo municipio: cargar biblioteca completa
+    const bib = construirBibliotecaLocal();
+    document.getElementById("mun-doc-cliente").value = bib.docCliente;
+    document.getElementById("mun-doc-tecnica").value = bib.docTecnica;
+    document.getElementById("mun-checklist").value = bib.checklistVisita;
+    document.getElementById("mun-flag-alcant").checked = false;
+    document.getElementById("mun-flag-plano").checked = false;
+  }
   document.getElementById("modal-municipio").classList.add("show");
 }
 
