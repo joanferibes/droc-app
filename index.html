@@ -304,6 +304,7 @@ function renderSolicitudes(){
         '<button class="btn btn-secondary btn-small" onclick=\'abrirProyecto('+JSON.stringify(s)+')\' title="Datos del proyecto">📂</button>'+
         '<button class="btn btn-secondary btn-small" onclick="generarBorrador('+s.fila+',this)" title="Email cliente + PDF">📧</button>'+
         '<button class="btn btn-secondary btn-small" onclick="generarChecklistInterno('+s.fila+',this)" title="PDF checklist interno">📋</button>'+
+        '<button class="btn btn-secondary btn-small" onclick="crearTrello('+s.fila+',this)" title="Crear tarjeta Trello">📌</button>'+
         '<button class="btn btn-danger btn-small" onclick="eliminarSolicitud('+s.fila+',this)" title="Eliminar">🗑️</button>'+
       '</div></td>'+
     '</tr>').join("")+
@@ -323,6 +324,14 @@ async function generarChecklistInterno(fila,btn){
   await apiPost({accion:"generar_checklist_interno",fila});
   toast("PDF checklist generado ✓ (revisa carpeta Drive)");
   btn.innerHTML="📋";btn.disabled=false;
+}
+
+async function crearTrello(fila,btn){
+  btn.innerHTML='⏳';btn.disabled=true;
+  await apiPost({accion:"crear_trello",fila});
+  toast("Tarjeta Trello creada ✓ (revisa el tablero)");
+  btn.innerHTML="📌";btn.disabled=false;
+  setTimeout(cargarSolicitudes,3000);
 }
 
 async function eliminarSolicitud(fila,btn){
