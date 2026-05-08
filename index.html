@@ -47,6 +47,8 @@ tr:hover td{background:#f9fcfc;}
 .badge-nuevo{background:#fef3c7;color:#92400e;}
 .badge-borrador{background:#dcfce7;color:#166534;}
 .badge-visita{background:#dbeafe;color:#1e40af;}
+.badge-realizada{background:#dcfce7;color:#166534;font-weight:bold;}
+.fecha-visita-tag{display:inline-block;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;margin-top:4px;white-space:nowrap;}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--verde);color:white;padding:13px 20px;border-radius:8px;font-size:0.88rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);display:none;z-index:9999;max-width:360px;}
 .toast.error{background:var(--rojo);}
 .toast.show{display:block;}
@@ -149,7 +151,7 @@ tr:hover td{background:#f9fcfc;}
   </div>
 </div>
 
-<!-- ════════ MODAL DATOS DEL PROYECTO (sin FechaLicenciaObras, fechaCedulaAnt como texto) ════════ -->
+<!-- ════════ MODAL DATOS DEL PROYECTO ════════ -->
 <div class="modal-overlay" id="modal-proyecto">
   <div class="modal">
     <h2>📂 Datos del proyecto</h2>
@@ -170,7 +172,7 @@ tr:hover td{background:#f9fcfc;}
   </div>
 </div>
 
-<!-- ════════ MODAL EDITAR MUNICIPIO (3 textareas + flags) ════════ -->
+<!-- ════════ MODAL EDITAR MUNICIPIO ════════ -->
 <div class="modal-overlay" id="modal-municipio">
   <div class="modal">
     <h2 id="modal-mun-titulo">Nuevo municipio</h2>
@@ -238,7 +240,7 @@ function toast(msg,tipo="ok"){const el=document.getElementById("toast");el.textC
 function cerrarModal(id){document.getElementById(id).classList.remove("show");}
 function cambiarTab(tab){const ids=["solicitudes","nueva","municipios"];document.querySelectorAll(".tab").forEach((t,i)=>t.classList.toggle("active",ids[i]===tab));document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("panel-"+tab).classList.add("active");}
 
-// ════════ CARGAR SOLICITUDES (21 columnas, sin FechaLicenciaObras) ════════
+// ════════ CARGAR SOLICITUDES ════════
 async function cargarSolicitudes() {
   document.getElementById("tabla-solicitudes").innerHTML='<div class="empty"><div class="empty-icon">⏳</div><p>Cargando...</p></div>';
   try {
@@ -274,8 +276,11 @@ async function cargarSolicitudes() {
           carpetaDrive: c[16]?.v||'',
           supUtil: c[17]?.v||'',
           anoConstruccion: c[18]?.v||'',
-          fechaCedulaAnt: c[19]?.v||'',  // texto libre
-          numExpCedulaAnt: c[20]?.v||''
+          fechaCedulaAnt: c[19]?.v||'',
+          numExpCedulaAnt: c[20]?.v||'',
+          trelloCardId: c[21]?.v||'',
+          trelloCardUrl: c[22]?.v||'',
+          fechaVisita: c[23]?.v||''
         });
       });
       solicitudes.reverse();
@@ -286,14 +291,28 @@ async function cargarSolicitudes() {
   }
 }
 
+// Formatea la fecha de visita (sea Date(...) de Sheets o string)
+function formatearFechaVisita(v){
+  if(!v) return '';
+  const m = String(v).match(/Date\((\d+),(\d+),(\d+)/);
+  if(m) return String(m[3]).padStart(2,'0')+'/'+String(parseInt(m[2])+1).padStart(2,'0')+'/'+m[1];
+  return String(v);
+}
+
 function renderSolicitudes(){
   const cont=document.getElementById("tabla-solicitudes");
   if(!solicitudes.length){cont.innerHTML='<div class="empty"><div class="empty-icon">📂</div><p>No hay solicitudes.</p></div>';return;}
-  const badge=e=>{
-    if(e==="Borrador") return '<span class="badge badge-borrador">Borrador ✓</span>';
-    if(e==="Visita pendiente") return '<span class="badge badge-visita">Visita pend.</span>';
-    if(e==="Visita realizada") return '<span class="badge badge-visita">Visita ✓</span>';
-    return '<span class="badge badge-nuevo">🔔 Nuevo</span>';
+  const badge=(e,fechaVisita)=>{
+    let html = '';
+    if(e==="Borrador") html = '<span class="badge badge-borrador">Borrador ✓</span>';
+    else if(e==="Visita pendiente") html = '<span class="badge badge-visita">Visita pend.</span>';
+    else if(e==="Visita realizada") html = '<span class="badge badge-visita">Visita ✓</span>';
+    else html = '<span class="badge badge-nuevo">🔔 Nuevo</span>';
+    if(fechaVisita){
+      const fv = formatearFechaVisita(fechaVisita);
+      html += '<br><span class="fecha-visita-tag">✅ Visitada '+fv+'</span>';
+    }
+    return html;
   };
   cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Dirección</th><th>Cliente</th><th>Municipio</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+
     solicitudes.map(s=>'<tr>'+
@@ -301,7 +320,7 @@ function renderSolicitudes(){
       '<td><strong>'+s.direccion+'</strong>'+(s.cp?'<br><small>'+s.cp+'</small>':'')+'</td>'+
       '<td>'+s.nombre+'<br><small>'+(s.email||s.telefono||"")+'</small></td>'+
       '<td>'+(s.municipioExp||s.municipio||"—")+'</td>'+
-      '<td>'+badge(s.estado)+'</td>'+
+      '<td>'+badge(s.estado, s.fechaVisita)+'</td>'+
       '<td><div class="acciones-btns">'+
         '<button class="btn btn-secondary btn-small" onclick=\'abrirEdicion('+JSON.stringify(s)+')\' title="Editar datos">✏️</button>'+
         '<button class="btn btn-secondary btn-small" onclick=\'abrirProyecto('+JSON.stringify(s)+')\' title="Datos del proyecto">📂</button>'+
@@ -370,7 +389,7 @@ async function guardarEdicion(){
   setTimeout(cargarSolicitudes,3000);
 }
 
-// ════════ DATOS DEL PROYECTO (sin FechaLicenciaObras) ════════
+// ════════ DATOS DEL PROYECTO ════════
 function abrirProyecto(s){
   document.getElementById("proy-fila").value = s.fila;
   document.getElementById("proy-numexp").value = s.numExp || "";
@@ -497,7 +516,6 @@ function abrirModalMunicipio(m){
     document.getElementById("mun-flag-alcant").checked = m.flagAlcantarillado;
     document.getElementById("mun-flag-plano").checked = m.flagPlano;
   } else {
-    // Nuevo municipio: cargar biblioteca completa
     const bib = construirBibliotecaLocal();
     document.getElementById("mun-doc-cliente").value = bib.docCliente;
     document.getElementById("mun-doc-tecnica").value = bib.docTecnica;
